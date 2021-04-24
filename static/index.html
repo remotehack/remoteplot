@@ -36,23 +36,17 @@
         const canvas = document.querySelector('canvas');
 
         const ctx = canvas.getContext('2d')
-
         ctx.lineWidth = 3;
 
-        let points = [];
-
-        let drawing = false;
+        // 
+        let points;
 
         canvas.addEventListener("pointerdown", (e) => {
-            drawing = true
             points = [];
-            last = null;
-
         })
+
         canvas.addEventListener("pointerup", (e) => {
-            drawing = false
-
-
+            // scale down
             for (const point of points) {
                 point[0] = point[0] / 4
                 point[1] = point[1] / 4
@@ -60,26 +54,23 @@
 
             console.log(points)
 
-
             fetch('/', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(
-                    points
-                )
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(points)
             })
+
+            points = undefined
         })
 
-        let last;
-        canvas.addEventListener("pointermove", (e) => {
 
-            if (drawing) {
+        canvas.addEventListener("pointermove", (e) => {
+            if (points) {
                 // account for max-width scaling
                 const scale = canvas.clientWidth / canvas.width
 
                 const current = [e.offsetX / scale, e.offsetY / scale];
+                const last = points[points.length - 1]
 
                 const dist = last ?
                     Math.abs(current[0] - last[0]) + Math.abs(current[1] - last[1]) :
@@ -96,12 +87,8 @@
                         ctx.lineTo(x, y)
                     }
                     ctx.stroke()
-
-                    last = current
                 }
-
             }
-
         })
     </script>
 </body>
