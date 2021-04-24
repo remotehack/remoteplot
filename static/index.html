@@ -10,18 +10,87 @@
         label {
             display: block;
         }
+
+        canvas {
+            display: block;
+            outline: 2px solid blue
+        }
     </style>
 </head>
 
 <body>
     <h1>Remote Plot!</h1>
 
-    <form method="post">
-        <label>x <input type="number" name="x" value="1" max="100" /></label>
-        <label>y <input type="string" name="y" value="1" max="100" /></label>
 
-        <button>Draw</button>
-    </form>
+    <canvas width="600" height="600"></canvas>
+
+    <script>
+        const canvas = document.querySelector('canvas');
+        
+        const ctx = canvas.getContext('2d')
+
+        let points = [];
+
+        let drawing = false;
+
+        canvas.addEventListener("pointerdown", (e) => {
+            drawing = true
+            points = [];
+            last = null;
+
+        })
+        canvas.addEventListener("pointerup", (e) => {
+            drawing = false
+
+
+            for(const point of points) {
+                point[0] = point[0] / 4
+                point[1] = point[1] / 4
+            }
+
+            console.log(points)
+
+
+            fetch('/', {
+                method: 'POST', 
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(
+                    points
+                )
+            })
+        })
+
+        let last;
+        canvas.addEventListener("pointermove", (e) => {
+            
+            if(drawing) {
+                const current = [e.offsetX, e.offsetY];
+                
+                const dist = last ? 
+                    Math.abs(current[0] - last[0]) + Math.abs(current[1] - last[1]) : 
+                    Infinity;
+
+                if(dist > 50) {
+
+                    points.push([e.offsetX, e.offsetY])
+
+                    ctx.clearRect(0,0,canvas.width, canvas.height)
+
+                    ctx.beginPath()
+                    for(const [x, y] of points) {
+                        ctx.lineTo(x, y)
+                    }
+                    ctx.stroke()
+
+                    last = current
+                } 
+
+            }
+  
+        })
+    </script>
 </body>
 
 </html>
